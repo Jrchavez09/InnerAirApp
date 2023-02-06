@@ -1,4 +1,4 @@
-from inner_air import app, db
+from inner_air import app, db, bcrypt
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required
 
@@ -17,7 +17,7 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = db.session.query(User).filter_by(email=form.email.data).first()
 
         if user and user.verify_password(password=form.password.data):
             login_user(user)
@@ -34,22 +34,20 @@ def register():
         Return the register.html page
     """
     form = RegisterForm()
-
     if form.validate_on_submit():
-        new_user = User(
-            firstname=form.firstname.data,
-            email=form.email.data,
-            hashed_password=form.password.data
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user)
-        flash(f'Account created successfully for {new_user.firstname}', category='success')
-        return redirect(url_for('login'))
+        encrypted_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')  # Encrypt password
+        user = User(firstname=form.firstname.data, email=form.email.data,
+                    password=encrypted_password)  # Get user input from Registration form
+        # Add user input to database
 
-    if form.errors != {}:
-        for err_msg in form.errors.values():
-            flash(f'{err_msg}', category='danger')
+        if db.session.query(User).filter_by(email=form.email.data).first() is None:
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            flash(f'Account created successfully for {user.firstname}', category='success')
+        else:
+            flash('Email exists in db', category='danger')
+            return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
 
@@ -61,8 +59,7 @@ def dashboard():
     """
     users = User.query.all()
     exercises = Exercise.query.all()
-    return render_template('dashboard.html',users=users, exercises=exercises)
-
+    return render_template('dashboard.html', users=users, exercises=exercises)
 
 
 @app.route('/logout')
