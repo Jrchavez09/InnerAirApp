@@ -10,7 +10,7 @@ def load_user(user_id):
 
 
 """
-    I changed the userID, exerciseID, etc., to id because it is a convention
+    I replaced the userID to the default id attribute because it is a convention
     and it is a must have thing. Which could also lead to certain problems when
     using UserMixin.
 """
@@ -25,6 +25,8 @@ class User(db.Model, UserMixin):
     created_time = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     routines = db.relationship('Routine', backref='user', lazy=True)
+    favorites = db.relationship('Favorites', backref='user', lazy=True)
+    statistics = db.relationship('Statistics', backref='user', lazy=True)
 
     @property
     def hashed_password(self):
@@ -37,22 +39,76 @@ class User(db.Model, UserMixin):
     def verify_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Exercise(db.Model):
     __tablename__ = 'Exercise.Details'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    exerciseID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     exercise_name = db.Column(db.String(64), nullable=False, unique=True)
     exercise_instructions = db.Column(db.String(256), nullable=False)
     exercise_description = db.Column(db.String(256), nullable=False)
     exercise_length = db.Column(db.Float, nullable=False)
     cumulative_rating = db.Column(db.Float)
     category_id = db.Column(db.Integer, nullable=False)
+    user_rating_count = db.Column(db.Integer)
 
     routines = db.relationship('Routine', backref='exercise', lazy=True)
+    favorites = db.relationship('Favorites', backref='exercise', lazy=True)
+    statistics = db.relationship('Statistics', backref='exercise', lazy=True)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class Routine(db.Model):
     __tablename__ = 'Users.Routines'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    routineid = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('User.Users.id'), nullable=False)
-    exercise_id = db.Column(db.Integer, db.ForeignKey('Exercise.Details.id'), nullable=False)
+    exercise_id = db.Column(db.Integer, db.ForeignKey('Exercise.Details.exerciseID'), nullable=False)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class Favorites(db.Model):
+    __tablename__ = 'Users.Favorites'
+    favoritesid = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('User.Users.id'), nullable=False)
+    exercise_id = db.Column(db.Integer, db.ForeignKey('Exercise.Details.exerciseID'), nullable=False)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class Statistics(db.Model):
+    __tablename__ = 'Users.Statistics'
+    statisticsid = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
+    exercises_completed = db.Column(db.Integer, nullable=False)
+    exercise_id = db.Column(db.Integer, db.ForeignKey('Exercise.Details.exerciseID'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.Users.id'), nullable=False)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class Category(db.Model):
+    __tablename__ = 'Exercise.Category'
+    categoryid = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    category_name = db.Column(db.String(50), nullable=False)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class UserRating(db.Model):
+    __tablename__ = 'Exercise.UserRaiting'
+    userratingid = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_rating = db.Column(db.Float, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.Users.id'), nullable=False)
+    exercise_id = db.Column(db.Integer, db.ForeignKey('Exercise.Details.exerciseID'), nullable=False)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}

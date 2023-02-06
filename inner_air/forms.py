@@ -10,18 +10,19 @@ class RegisterForm(FlaskForm):
     def validate_email(self, email):
         email = User.query.filter_by(email=email.data).first()
         if email:
-            raise ValidationError('Email Address already exits')
+            raise ValidationError('Email exists in db')
 
-    firstname = StringField(label='firstname', validators=[InputRequired(), Length(min=3, max=30)],
+    firstname = StringField(label='First Name', validators=[InputRequired(), Length(min=3, max=30)],
                             render_kw={"placeholder": "First Name"})
-    email = StringField(label='email', validators=[InputRequired(), Email()], render_kw={"placeholder": "Email"})
-    password1 = PasswordField(label='Password:', validators=[InputRequired(), Length(min=8)],
-                              render_kw={"placeholder": "Password"})
-    password2 = PasswordField(label='Confirm Password:', validators=[InputRequired(), EqualTo('password1')],
-                              render_kw={"placeholder": "Confirm Password"})
+    email = StringField(label='Email', validators=[InputRequired(), Email()], render_kw={'placeholder': 'Email'})
+    password = PasswordField(label='Password', validators=[InputRequired(), Length(min=8)],
+                             render_kw={"placeholder": "Password"})
+    confirm_password = PasswordField(label='Confirm Password', validators=[InputRequired(), EqualTo('password')],
+                                     render_kw={'placeholder': 'Confirm Password'})
     submit = SubmitField("Sign up")
 
 
+# Add a class for LoginForm
 class LoginForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email()], render_kw={"placeholder": "Email"})
     password = PasswordField(validators=[InputRequired(), Length(min=8)], render_kw={"placeholder": "Password"})

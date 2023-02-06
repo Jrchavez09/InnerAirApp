@@ -3,7 +3,7 @@ from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required
 
 from inner_air.forms import RegisterForm, LoginForm
-from inner_air.models import Exercise, User
+from inner_air.models import Exercise, User, Routine, Favorites, Statistics, Category, UserRating
 
 
 @app.route('/')
@@ -24,19 +24,22 @@ def login():
             flash(f'Success! You are logged in as: {user.firstname}', category='success')
             return redirect(url_for('dashboard'))
         else:
-            flash('email address or password are incorrect.', category='danger')
+            flash('You have entered an invalid email address or password.', category='danger')
     return render_template('login.html', form=form)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """
+        Return the register.html page
+    """
     form = RegisterForm()
 
     if form.validate_on_submit():
         new_user = User(
             firstname=form.firstname.data,
             email=form.email.data,
-            hashed_password=form.password1.data
+            hashed_password=form.password.data
         )
         db.session.add(new_user)
         db.session.commit()
@@ -46,17 +49,20 @@ def register():
 
     if form.errors != {}:
         for err_msg in form.errors.values():
-            flash(f'an error occurred: {err_msg}', category='danger')
+            flash(f'{err_msg}', category='danger')
     return render_template('register.html', form=form)
 
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    """
+        I tried to create a table so that something can be displayed, nothing fancy.
+    """
     users = User.query.all()
     exercises = Exercise.query.all()
+    return render_template('dashboard.html',users=users, exercises=exercises)
 
-    return render_template('dashboard.html', users=users, exercises=exercises)
 
 
 @app.route('/logout')

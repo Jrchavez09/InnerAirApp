@@ -7,7 +7,7 @@ from flask_login import LoginManager
 app = Flask(__name__)
 DB_NAME = 'inner-air.db'
 
-app.config['SECRET_KEY'] = '52e45de5548bd1f09fba589e'
+app.config['SECRET_KEY'] = '`5J<-lgHQaae_|LR*h)0%}`#k?sW@IK],P-9,A/}d`Ly&GwruSUh#omM]AdXwNP'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
